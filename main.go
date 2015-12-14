@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/go-gorp/gorp"
+	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/yhat/scrape"
 	"golang.org/x/net/html"
@@ -13,6 +14,8 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+	"strings"
+	"encoding/json"
 )
 
 const base_url = "http://www.gunviolencearchive.org/mass-shooting"
@@ -28,10 +31,53 @@ type Incident struct {
 	Source  string
 }
 
+type Email struct {
+	Email string
+	State string
+}
+
 func main() {
 	dbMap := initDb()
-	refreshData(dbMap)
+	go refreshData(dbMap)
 	go refreshLoop(dbMap, 6*time.Hour)
+
+	r := mux.NewRouter()
+	r.HandleFunc("/email", func(writer http.ResponseWriter, req *http.Request) {
+		addEmail(writer, req, dbMap)
+	}).Methods("POST")
+	r.HandleFunc("/victimCount", func (writer http.ResponseWriter, req *http.Request) {
+		getCount(writer, dbMap)
+	}).Methods("GET")
+
+	println("UP")
+	http.ListenAndServe(":3000", r)
+}
+
+func getCount(writer http.ResponseWriter, dbmap *gorp.DbMap) {
+	if num, err := dbmap.SelectInt("select sum(killed + injured) as thesum from Incident"); err != nil {
+		writer.WriteHeader(400)
+	} else {
+		writer.WriteHeader(200)
+		writer.Write([]byte(fmt.Sprint(num)))
+	}
+}
+
+func addEmail(writer http.ResponseWriter, req *http.Request, dbMap *gorp.DbMap) {
+	var submission Email
+	defer req.Body.Close()
+	decoder := json.NewDecoder(req.Body)
+	if err := decoder.Decode(&submission); err != nil {
+		writer.WriteHeader(400)
+	} else if strings.Contains(submission.Email, "@") && strings.Contains(submission.Email, ".") && submission.State != "" {
+		println("adding " + submission.Email + " " + submission.State)
+		email := Email{Email: submission.Email, State: submission.Email}
+		if key, _ := dbMap.SelectStr("select Email from Email where Email = ? && State = ?", email.Email, email.State); key == "" {
+			dbMap.Insert(&email)
+			writer.WriteHeader(200)
+		}
+	} else {
+		writer.WriteHeader(400)
+	}
 }
 
 func initDb() *gorp.DbMap {
@@ -41,6 +87,7 @@ func initDb() *gorp.DbMap {
 	}
 	dbMap := &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
 	dbMap.AddTable(Incident{}).SetKeys(false, "Id")
+	dbMap.AddTable(Email{}).SetKeys(false, "Email")
 	dbMap.CreateTablesIfNotExists()
 
 	return dbMap
