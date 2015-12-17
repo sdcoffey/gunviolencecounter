@@ -1,16 +1,18 @@
 <HTML ng-app="aroundtheworld-app">
   <head>
     <link rel="stylesheet" href="style/main.css" type="text/css"/>
+    <link rel="stylesheet" href="style/odometer.css" type="text/css"/>
     <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:300,100' rel='stylesheet' type='text/css'>
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script src="js/odometer.min.js"></script>
     <script src="js/controllers.js"></script>
     <title>Don't Shoot</title>
   </head>
   <body ng-controller="maincontroller">
     <div id="main">
         <div id="hero-wrapper" class="center-h center-v">
-            <h1 class="roboto light" ng-model="victimCount" id="victims">{{victimCount}}</h1>
+            <h1 class="roboto light" id="victims">{{victimCount}}</h1>
             <h2 class="roboto thin">Victims of mass shootings in the last year</h2>
         </div>
         <div id="form-wrapper" class="center-h">

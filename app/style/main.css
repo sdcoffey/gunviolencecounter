@@ -5,6 +5,16 @@ body {
 #hero-wrapper {
     height: 100px;
     width: 500px;
+    opacity: 0;
+    transition-timing-function: ease-out;
+    transition: opacity .5s, transform .5s;
+    -webkit-transition: opacity .5s, transform .5s;
+    transform: translateY(-5px);
+}
+
+.slide-down {
+    transform: translateY(5px) !important;
+    opacity: 1 !important;
 }
 
 #hero-wrapper h1,h2 {
