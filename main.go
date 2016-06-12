@@ -35,13 +35,20 @@ type Incident struct {
 
 type Email struct {
 	Email string
-	State string
+	ZIP string
 }
+
+var count int64
 
 func main() {
 	dbMap := initDb()
 	go refreshData(dbMap)
-	go refreshLoop(dbMap, 6*time.Hour)
+	go refreshLoop(6*time.Hour, func(){
+		refreshData(dbMap)
+		updateCount(dbMap)
+	})
+
+	updateCount(dbMap)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/email", func(writer http.ResponseWriter, req *http.Request) {
@@ -56,12 +63,13 @@ func main() {
 }
 
 func getCount(writer http.ResponseWriter, dbmap *gorp.DbMap) {
-	// TODO: in last year
-	if num, err := dbmap.SelectInt("select sum(killed + injured) as thesum from Incident"); err != nil {
-		writer.WriteHeader(400)
-	} else {
-		writer.WriteHeader(200)
-		writer.Write([]byte(fmt.Sprint(num)))
+	writer.WriteHeader(200)
+	writer.Write([]byte(fmt.Sprint(count)))
+}
+
+func updateCount(dbmap *gorp.DbMap) {
+	if num, err := dbmap.SelectInt("select sum(killed + injured) as thesum from Incident where Date > timestamp '2016-01-01'"); err == nil {
+		count = num
 	}
 }
 
@@ -74,9 +82,9 @@ func addEmail(writer http.ResponseWriter, req *http.Request, dbMap *gorp.DbMap) 
 	decoder := json.NewDecoder(req.Body)
 	if err := decoder.Decode(&submission); err != nil {
 		writer.WriteHeader(400)
-	} else if strings.Contains(submission.Email, "@") && strings.Contains(submission.Email, ".") && submission.State != "" {
-		email := Email{Email: submission.Email, State: submission.Email}
-		if key, _ := dbMap.SelectStr("select Email from Email where Email = $1 AND State = $2", email.Email, email.State); key == "" {
+	} else if strings.Contains(submission.Email, "@") && strings.Contains(submission.Email, ".") && submission.ZIP != "" {
+		email := Email{Email: submission.Email, ZIP: submission.ZIP}
+		if key, _ := dbMap.SelectStr("select Email from Email where Email = $1 AND ZIP = $2", email.Email, email.ZIP); key == "" {
 			dbMap.Insert(&email)
 			writer.WriteHeader(200)
 			fmt.Println("Inserted", email)
@@ -104,10 +112,10 @@ func initDb() *gorp.DbMap {
 	}
 }
 
-func refreshLoop(dbMap *gorp.DbMap, d time.Duration) {
+func refreshLoop(d time.Duration, updateFunc func()) {
 	refreshTimer := time.Tick(d)
 	for range refreshTimer {
-		refreshData(dbMap)
+		updateFunc()
 	}
 }
 

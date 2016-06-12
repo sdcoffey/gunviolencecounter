@@ -67,26 +67,31 @@ select:focus {
 }
 
 #email {
-    font-size: 1em;
-    height: 40px;
     width: 250px;
 }
 
-.underline input[type="email"] {
+#zip {
+    width: 150px;
+}
+
+.form-field {
+    font-size: 1em;
+    height: 40px;
     outline: none;
     border: none;
     border-bottom: solid 2px #c9c9c9;
     transition: border 0.3s;
 }
 
-.underline input[type="email"]:focus {
+.form-field:hover {
     border-bottom: solid 2px #3da9df;
 }
 
 #content {
     width: 100%;
     height: auto;
-    background-color: brown;
+    background-color: dodgerblue;
+    padding-bottom: 30px;
 }
 
 .container {
@@ -102,6 +107,7 @@ select:focus {
     display: table-cell;
     padding: 10%;
     font-size: 2em;
+    line-height: 2em;
 }
 
 .roboto {
@@ -114,4 +120,15 @@ select:focus {
 
 .light {
     font-weight: 300;
+}
+
+#github {
+    width: 100%;
+    text-align: center;
+}
+
+#github a {
+    color: whitesmoke;
+    width: 100%;
+    text-align: center;
 }
