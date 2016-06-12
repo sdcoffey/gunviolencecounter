@@ -7,9 +7,19 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
     <script src="js/odometer.min.js"></script>
     <script src="js/controllers.js"></script>
-    <title>Don't Shoot</title>
+    <title>End Gun Violence Today</title>
   </head>
   <body ng-controller="maincontroller">
+  <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-79209561-1', 'auto');
+      ga('send', 'pageview');
+
+  </script>
     <div id="main">
         <div id="hero-wrapper" class="center-h center-v">
             <h2 class="roboto thin">There have been</h2>
@@ -20,18 +30,22 @@
             <form class="underline">
                 <input ng-model="user.Email" placeholder="Your email" id="email" type="email" class="form-field">
                 <input ng-model="user.ZIP" placeholder="Your Zip code" id="zip" type="text" class="form-field">
-                <input ng-click="submitForm(user)" type="submit" value="Join">
+                <input ng-click="submitForm(user)" type="submit" value="Join" class="button">
             </form>
         </div>
     </div>
     <div id="content">
         <div class="container">
-            <p class="roboto">
-                In the wake of all of the tragic mass shootings that have taken place so far in 2016, and of the continuing importance
-                we play in the political process, this website intends to make a real change by leveraging your voice
-                in the political process. By adding your voice, you'll join a powerful chorus of people who want to
-                see gun violence go away for good. Every time there is a new mass shooting in the United States, we'll
-                send an email to your congressmen, senators, govenor, and the President of the United States on your behalf.
+            <p class="helvetica">
+                In the wake of all the tragic mass shootings that have taken place in 2016, it's left us wondering if
+                there's anything we can do to put an end to the madness.
+                <br>
+                <br>
+                Every time there is a new mass shooting in the United States, we'll
+                send an email to your congressman, and senators on your behalf, lobbying for common sense gun laws that
+                will end the rampant public health issue of gun control.
+                <br>
+                <br>
                 It's time to put a stop to this senseless violence.
             </p>
         </div>

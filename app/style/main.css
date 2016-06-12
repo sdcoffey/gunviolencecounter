@@ -41,7 +41,7 @@ body {
 }
 
 .center-v {
-    top: 50%;
+    top: 40%;
     transform: translateY(-50%);
 }
 
@@ -49,21 +49,6 @@ body {
     height: 93%;
     width: 100%;
     overflow: hidden;
-}
-
-select {
-    background-color: rgba(0,0,0,0);
-    border:none;
-    outline:none;
-    font-size: 1em;
-    height: 40px;
-    border-radius: 0px;
-    border-bottom: solid 2px #c9c9c9;
-    -webkit-appearance: none;
-}
-
-select:focus {
-    border-bottom: solid 2px #3da9df;
 }
 
 #email {
@@ -114,6 +99,10 @@ select:focus {
     font-family: "Roboto Slab";
 }
 
+.helvetica {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
 .thin {
     font-weight: 100;
 }
@@ -131,4 +120,16 @@ select:focus {
     color: whitesmoke;
     width: 100%;
     text-align: center;
+}
+
+.button {
+    background-color: dodgerblue;
+    color: #fff;;
+    padding: 8px 16px;
+    text-decoration: none;
+    font-size: 1em;
+    border: none;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
 }
