@@ -1,0 +1,26 @@
+version: "2.0"
+services:
+  gv_app:
+    container_name: gv_app
+    build: .
+    ports:
+      - "3001"
+    links:
+      - gv_postgres:db
+  gv_proxy:
+    container_name: gv_proxy
+    image: nginx:latest
+    links:
+      - gv_app:app
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./app:/var/www:ro
+    ports:
+      - "80:80"
+  gv_postgres:
+    container_name: gv_postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: docker
+      POSTGRES_USER: docker
+

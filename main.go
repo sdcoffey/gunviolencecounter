@@ -2,20 +2,22 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
-	"github.com/go-gorp/gorp"
-	"github.com/gorilla/mux"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/yhat/scrape"
-	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
 	"net/http"
+	"net/http/httputil"
 	"path/filepath"
 	"regexp"
 	"strconv"
-	"time"
 	"strings"
-	"encoding/json"
+	"time"
+
+	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/github.com/go-gorp/gorp"
+	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/github.com/gorilla/mux"
+	_ "github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/github.com/lib/pq"
+	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/github.com/yhat/scrape"
+	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/golang.org/x/net/html"
+	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/golang.org/x/net/html/atom"
 )
 
 const base_url = "http://www.gunviolencearchive.org/mass-shooting"
@@ -42,18 +44,19 @@ func main() {
 	go refreshLoop(dbMap, 6*time.Hour)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/email", func(writer http.ResponseWriter, req *http.Request) {
+	r.HandleFunc("/v1/email", func(writer http.ResponseWriter, req *http.Request) {
 		addEmail(writer, req, dbMap)
 	}).Methods("POST")
-	r.HandleFunc("/victimCount", func (writer http.ResponseWriter, req *http.Request) {
+	r.HandleFunc("/v1/victimCount", func(writer http.ResponseWriter, req *http.Request) {
 		getCount(writer, dbMap)
 	}).Methods("GET")
 
-	println("UP")
-	http.ListenAndServe(":3000", r)
+	fmt.Println("Listening")
+	http.ListenAndServe(":3001", r)
 }
 
 func getCount(writer http.ResponseWriter, dbmap *gorp.DbMap) {
+	// TODO: in last year
 	if num, err := dbmap.SelectInt("select sum(killed + injured) as thesum from Incident"); err != nil {
 		writer.WriteHeader(400)
 	} else {
@@ -63,17 +66,22 @@ func getCount(writer http.ResponseWriter, dbmap *gorp.DbMap) {
 }
 
 func addEmail(writer http.ResponseWriter, req *http.Request, dbMap *gorp.DbMap) {
+	body, _ := httputil.DumpRequest(req, true)
+	fmt.Println("/email", string(body))
+
 	var submission Email
 	defer req.Body.Close()
 	decoder := json.NewDecoder(req.Body)
 	if err := decoder.Decode(&submission); err != nil {
 		writer.WriteHeader(400)
 	} else if strings.Contains(submission.Email, "@") && strings.Contains(submission.Email, ".") && submission.State != "" {
-		println("adding " + submission.Email + " " + submission.State)
 		email := Email{Email: submission.Email, State: submission.Email}
-		if key, _ := dbMap.SelectStr("select Email from Email where Email = ? && State = ?", email.Email, email.State); key == "" {
+		if key, _ := dbMap.SelectStr("select Email from Email where Email = $1 AND State = $2", email.Email, email.State); key == "" {
 			dbMap.Insert(&email)
 			writer.WriteHeader(200)
+			fmt.Println("Inserted", email)
+		} else {
+			fmt.Println("Duplicate", email)
 		}
 	} else {
 		writer.WriteHeader(400)
@@ -81,16 +89,19 @@ func addEmail(writer http.ResponseWriter, req *http.Request, dbMap *gorp.DbMap) 
 }
 
 func initDb() *gorp.DbMap {
-	db, err := sql.Open("sqlite3", "data.db")
-	if err != nil {
+	dbinfo := "user=docker password=docker dbname=docker sslmode=disable host=db"
+	if db, err := sql.Open("postgres", dbinfo); err != nil {
 		panic(err)
+	} else if err = db.Ping(); err != nil {
+		panic(err)
+	} else {
+		fmt.Println("Connected to Postgres")
+		dbMap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
+		dbMap.AddTable(Incident{}).SetKeys(false, "Id")
+		dbMap.AddTable(Email{}).SetKeys(false, "Email")
+		dbMap.CreateTablesIfNotExists()
+		return dbMap
 	}
-	dbMap := &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
-	dbMap.AddTable(Incident{}).SetKeys(false, "Id")
-	dbMap.AddTable(Email{}).SetKeys(false, "Email")
-	dbMap.CreateTablesIfNotExists()
-
-	return dbMap
 }
 
 func refreshLoop(dbMap *gorp.DbMap, d time.Duration) {
@@ -107,16 +118,27 @@ func refreshData(dbMap *gorp.DbMap) {
 		incidents, numPages = getData(i)
 
 		for _, incident := range incidents {
-			key, _ := dbMap.SelectStr("select Id from Incident where id = ?", incident.Id)
+			existingIncident := getIncident(incident.Id, dbMap)
 
-			if key == "" {
+			if existingIncident.Id == "" {
+				fmt.Println("Adding incident", incident)
 				if err := dbMap.Insert(&incident); err != nil {
-					fmt.Println(incident)
-					panic(err)
+					fmt.Println("ERROR - adding incident", incident, err.Error())
+				} else {
+					// Send emails
 				}
+			} else if existingIncident.Injured != incident.Injured || existingIncident.Killed != incident.Killed {
+				fmt.Println("Updating incident", incident.Id)
+				dbMap.Update(incident)
 			}
 		}
 	}
+}
+
+func getIncident(id string, dbMap *gorp.DbMap) Incident {
+	var incident Incident
+	dbMap.SelectOne(&incident, "select * from Incident where id = $1", id)
+	return incident
 }
 
 func getData(page int) ([]Incident, int) {

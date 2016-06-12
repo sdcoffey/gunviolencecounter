@@ -85,8 +85,23 @@ select:focus {
 
 #content {
     width: 100%;
-    height: 500px;
+    height: auto;
     background-color: brown;
+}
+
+.container {
+    width: 100%;
+    height: 500px;
+    display: table;
+}
+
+.container p {
+    color: white;
+    text-align: center;
+    vertical-align: middle;
+    display: table-cell;
+    padding: 10%;
+    font-size: 2em;
 }
 
 .roboto {

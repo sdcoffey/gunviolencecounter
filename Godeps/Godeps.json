@@ -1,0 +1,40 @@
+{
+	"ImportPath": "github.com/sdcoffey/gunviolencecounter",
+	"GoVersion": "devel",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/go-gorp/gorp",
+			"Comment": "v1.7-146-gc391a3d",
+			"Rev": "c391a3da75cf2003f4bf4763d0b5755c4500aef1"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "c3c5f0000f7b474738b08f34308c1e8a4060ce14"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-58-g0dad96c",
+			"Rev": "0dad96c0b94f8dee039aa40467f767467392a0af"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Comment": "v1.0-40-g7c2b1e5",
+			"Rev": "7c2b1e5640dcf2631213ca962d892bffa1e08860"
+		},
+		{
+			"ImportPath": "github.com/yhat/scrape",
+			"Rev": "53e4de4d80edac458f4761a5eca90ea9b6272971"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html",
+			"Rev": "35b06af0720201bc2f326773a80767387544f8c4"
+		}
+	]
+}

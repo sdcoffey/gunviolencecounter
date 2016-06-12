@@ -5,16 +5,17 @@ app.controller("maincontroller", [ "$scope", "$http", function($scope, $http) {
   var originalCount = 0
   $scope.submitForm = function(user) {
     $("#email").css("border-bottom-color", "#3da9df")
-    $http.post("/email", user).then(function successCallback(response) {
+    $http.post("/v1/email", user).then(function successCallback(response) {
       user.Email = "";
       user.State = "";
     }, function errorCallback(response) {
+      console.log(response)
       $("#email").css("border-bottom-color", "red")
     });
   };
 
   $scope.getCount = function() {
-    $http.get("/victimCount").then(function successCallback(response) {
+    $http.get("/v1/victimCount").then(function successCallback(response) {
       originalCount = parseInt(response.data)
       $scope.victimCount = originalCount;
       $("#hero-wrapper").addClass("slide-down");
@@ -31,7 +32,6 @@ app.controller("maincontroller", [ "$scope", "$http", function($scope, $http) {
     $("#victims").html(0);
   }, function() {
     $("#victims").html(originalCount);
-    $("#vicimts").removeClass("odometer");
+    $("#victims").removeClass("odometer");
   });
-
 }]);
