@@ -18,8 +18,8 @@ import (
 	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/github.com/yhat/scrape"
 	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/golang.org/x/net/html"
 	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/golang.org/x/net/html/atom"
-	"os"
 	"github.com/sdcoffey/gunviolencecounter/sunlight_api"
+	"os"
 )
 
 const base_url = "http://www.gunviolencearchive.org/mass-shooting"
@@ -36,9 +36,9 @@ type Incident struct {
 }
 
 type Email struct {
-	Name string
+	Name  string
 	Email string
-	ZIP string
+	ZIP   string
 	State string
 }
 
@@ -47,7 +47,7 @@ var count int64
 func main() {
 	dbMap := initDb()
 	go refreshData(dbMap)
-	go refreshLoop(6*time.Hour, func(){
+	go refreshLoop(6*time.Hour, func() {
 		refreshData(dbMap)
 		updateCount(dbMap)
 	})
