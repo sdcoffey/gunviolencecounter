@@ -6,6 +6,7 @@ app.controller("maincontroller", [ "$scope", "$http", function($scope, $http) {
   $scope.submitForm = function(user) {
     $("#email").css("border-bottom-color", "#3da9df")
     $http.post("/v1/email", user).then(function successCallback(response) {
+      user.Name = "";
       user.Email = "";
       user.ZIP = "";
     }, function errorCallback(response) {

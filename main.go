@@ -18,6 +18,8 @@ import (
 	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/github.com/yhat/scrape"
 	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/golang.org/x/net/html"
 	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/golang.org/x/net/html/atom"
+	"os"
+	"github.com/sdcoffey/gunviolencecounter/sunlight_api"
 )
 
 const base_url = "http://www.gunviolencearchive.org/mass-shooting"
@@ -34,8 +36,10 @@ type Incident struct {
 }
 
 type Email struct {
+	Name string
 	Email string
 	ZIP string
+	State string
 }
 
 var count int64
@@ -54,15 +58,21 @@ func main() {
 	r.HandleFunc("/v1/email", func(writer http.ResponseWriter, req *http.Request) {
 		addEmail(writer, req, dbMap)
 	}).Methods("POST")
+	r.HandleFunc("/v1/email", func(writer http.ResponseWriter, req *http.Request) {
+		listEmails(writer, req, dbMap)
+	})
+	r.HandleFunc("/v1/reps", func(writer http.ResponseWriter, req *http.Request) {
+		listReps(writer, req, dbMap)
+	})
 	r.HandleFunc("/v1/victimCount", func(writer http.ResponseWriter, req *http.Request) {
-		getCount(writer, dbMap)
+		getCount(writer)
 	}).Methods("GET")
 
 	fmt.Println("Listening")
 	http.ListenAndServe(":3001", r)
 }
 
-func getCount(writer http.ResponseWriter, dbmap *gorp.DbMap) {
+func getCount(writer http.ResponseWriter) {
 	writer.WriteHeader(200)
 	writer.Write([]byte(fmt.Sprint(count)))
 }
@@ -71,6 +81,32 @@ func updateCount(dbmap *gorp.DbMap) {
 	if num, err := dbmap.SelectInt("select sum(killed + injured) as thesum from Incident where Date > timestamp '2016-01-01'"); err == nil {
 		count = num
 	}
+}
+
+func listReps(writer http.ResponseWriter, req *http.Request, dbmap *gorp.DbMap) {
+	if req.Header.Get("Authorization") != os.Getenv("EMAIL_PW") {
+		writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	var reps []sunlight_api.Rep
+	dbmap.Select(&reps, "select * from Rep")
+	encoder := json.NewEncoder(writer)
+	writer.Header().Add("Content-Type", "application/json")
+	encoder.Encode(reps)
+}
+
+func listEmails(writer http.ResponseWriter, req *http.Request, dbmap *gorp.DbMap) {
+	if req.Header.Get("Authorization") != os.Getenv("EMAIL_PW") {
+		writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	var emails []Email
+	dbmap.Select(&emails, "select * from Email")
+	encoder := json.NewEncoder(writer)
+	writer.Header().Add("Content-Type", "application/json")
+	encoder.Encode(emails)
 }
 
 func addEmail(writer http.ResponseWriter, req *http.Request, dbMap *gorp.DbMap) {
@@ -83,9 +119,18 @@ func addEmail(writer http.ResponseWriter, req *http.Request, dbMap *gorp.DbMap) 
 	if err := decoder.Decode(&submission); err != nil {
 		writer.WriteHeader(400)
 	} else if strings.Contains(submission.Email, "@") && strings.Contains(submission.Email, ".") && submission.ZIP != "" {
-		email := Email{Email: submission.Email, ZIP: submission.ZIP}
+		email := Email{Name: submission.Name, Email: submission.Email, ZIP: submission.ZIP}
 		if key, _ := dbMap.SelectStr("select Email from Email where Email = $1 AND ZIP = $2", email.Email, email.ZIP); key == "" {
+			reps := sunlight_api.GetReps(submission.ZIP)
+			if len(reps) > 0 {
+				email.State = reps[0].State
+			}
+			fmt.Println("Adding user", email)
 			dbMap.Insert(&email)
+			for _, rep := range reps {
+				fmt.Println("Adding rep", rep)
+				dbMap.Insert(&rep)
+			}
 			writer.WriteHeader(200)
 			fmt.Println("Inserted", email)
 		} else {
@@ -97,7 +142,7 @@ func addEmail(writer http.ResponseWriter, req *http.Request, dbMap *gorp.DbMap) 
 }
 
 func initDb() *gorp.DbMap {
-	dbinfo := "user=docker password=docker dbname=docker sslmode=disable host=db"
+	dbinfo := fmt.Sprintf("user=docker password=%s dbname=docker sslmode=disable host=db", os.Getenv("GV_PG_PASS"))
 	if db, err := sql.Open("postgres", dbinfo); err != nil {
 		panic(err)
 	} else if err = db.Ping(); err != nil {
@@ -107,6 +152,7 @@ func initDb() *gorp.DbMap {
 		dbMap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
 		dbMap.AddTable(Incident{}).SetKeys(false, "Id")
 		dbMap.AddTable(Email{}).SetKeys(false, "Email")
+		dbMap.AddTable(sunlight_api.Rep{}).SetKeys(false, "BioGuideId")
 		dbMap.CreateTablesIfNotExists()
 		return dbMap
 	}

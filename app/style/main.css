@@ -31,7 +31,7 @@ body {
 
 #form-wrapper {
     position: relative;
-    top: 78%;
+    top: 75%;
 }
 
 .center-h {
@@ -75,7 +75,7 @@ body {
 #content {
     width: 100%;
     height: auto;
-    background-color: dodgerblue;
+    background-color: #242937;
     padding-bottom: 30px;
 }
 
@@ -90,13 +90,17 @@ body {
     text-align: center;
     vertical-align: middle;
     display: table-cell;
-    padding: 10%;
+    padding: 10% 0;
     font-size: 2em;
     line-height: 2em;
 }
 
 .roboto {
     font-family: "Roboto Slab";
+}
+
+.modal-body p {
+    font-size: 1.4em;
 }
 
 .helvetica {
@@ -112,18 +116,18 @@ body {
 }
 
 #github {
-    width: 100%;
-    text-align: center;
-}
-
-#github a {
     color: whitesmoke;
     width: 100%;
     text-align: center;
 }
 
+#github a {
+    width: 100%;
+    text-align: center;
+}
+
 .button {
-    background-color: dodgerblue;
+    background-color: #242937;
     color: #fff;;
     padding: 8px 16px;
     text-decoration: none;

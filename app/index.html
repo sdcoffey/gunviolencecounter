@@ -2,9 +2,11 @@
   <head>
     <link rel="stylesheet" href="style/main.css" type="text/css"/>
     <link rel="stylesheet" href="style/odometer.css" type="text/css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:300,100' rel='stylesheet' type='text/css'>
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
     <script src="js/odometer.min.js"></script>
     <script src="js/controllers.js"></script>
     <title>End Gun Violence Today</title>
@@ -28,28 +30,72 @@
         </div>
         <div id="form-wrapper" class="center-h">
             <form class="underline">
+                <input ng-model="user.Name" placeholder="Your name" id="name" type="text" class="form-field">
                 <input ng-model="user.Email" placeholder="Your email" id="email" type="email" class="form-field">
                 <input ng-model="user.ZIP" placeholder="Your Zip code" id="zip" type="text" class="form-field">
-                <input ng-click="submitForm(user)" type="submit" value="Join" class="button">
+                <input ng-click="submitForm(user)" type="submit" value="Add your voice" class="button">
             </form>
         </div>
     </div>
     <div id="content">
         <div class="container">
             <p class="helvetica">
-                In the wake of all the tragic mass shootings that have taken place in 2016, it's left us wondering if
-                there's anything we can do to put an end to the madness.
+                There have been {{victimCount}} victims of mass shootings just this year in the United States. That's an average of
+                4 per day.
                 <br>
                 <br>
-                Every time there is a new mass shooting in the United States, we'll
-                send an email to your congressman, and senators on your behalf, lobbying for common sense gun laws that
+                Every time there is another senseless act of violence in the United States, we'll
+                send <a href="#" data-toggle="modal" data-target="#messageModal">an email</a> to your elected officials on your behalf, lobbying for common sense gun laws that
                 will end the rampant public health issue of gun control.
                 <br>
                 <br>
                 It's time to put a stop to this senseless violence.
             </p>
         </div>
-        <div id="github"><a class="roboto" target="_blank" href="http://github.com/sdcoffey/gunviolencecounter">Contribute to this project</a></div>
+        <div class="roboto" id="github"> <a href="#" data-toggle="modal" data-target="#aboutModal">About</a>&nbsp;&nbsp;|&nbsp;&nbsp;stopgunviolence.today is an <a target="_blank" href="http://github.com/sdcoffey/gunviolencecounter">open source project</a></div>
+    </div>
+
+  <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              </div>
+              <div class="modal-body">
+                  <p class="helvetica">
+                      Data provided by <a target="_blank" href="http://www.shootingtracker.com/">The Gun Violence Archive</a><br>
+                  </p>
+                  <p class="helvetica">
+                      Congressional emails will be powered by <a target="_blank" href="http://democracy.io">Democracy.io</a>
+                  </p>
+              </div>
+          </div>
+      </div>
+  </div>
+
+    <!-- Message Modal -->
+    <div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              </div>
+              <div class="modal-body">
+                  <p class="helvetica">
+                  Dear ________________,<br><br>
+                      Since January 1st, 2016, there have been {{victimCount}} victims of mass shootings in the United States.<br><br>
+                      Gun violence is quickly becoming one of the worst public health crises of the 21st century, and I'm writing to plead you do something about it.<br><br>
+                      Lax gun laws allow anyone to puchase a gun with little or no oversight, when 90% of Americans support common sense gun laws such as background checks. Please
+                      take action to end this rampant, senseless violence.<br><br>
+                      Don't betray the trust I've put in you by giving you my vote. Take action now to protect your citizens from the most deadly epidemic of the 21st century.<br><br>
+
+                  <br>
+                  Thank you,<br>
+                  [Your Name]<br>
+                  </p>
+              </div>
+          </div>
+      </div>
     </div>
   </body>
 </HTML>

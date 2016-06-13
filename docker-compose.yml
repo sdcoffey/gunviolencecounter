@@ -7,6 +7,10 @@ services:
       - "3001"
     links:
       - gv_postgres:db
+    environment:
+      EMAIL_PW: "${EMAIL_PW}"
+      GV_PG_PASS: "${GV_PG_PASS}"
+      SUNLIGHT_API_KEY: "${SUNLIGHT_API_KEY}"
   gv_proxy:
     container_name: gv_proxy
     image: nginx:latest
@@ -21,6 +25,6 @@ services:
     container_name: gv_postgres
     image: postgres:latest
     environment:
-      POSTGRES_PASSWORD: docker
+      POSTGRES_PASSWORD: "${GV_PG_PASS}"
       POSTGRES_USER: docker
 
