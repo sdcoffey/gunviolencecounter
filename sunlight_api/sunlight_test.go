@@ -1,11 +1,11 @@
 package sunlight_api
 
 import (
-	"fmt"
+	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestGetReps(t *testing.T) {
 	reps := GetReps("48430")
-	fmt.Println(reps)
+	assert.Len(t, 3, reps)
 }
