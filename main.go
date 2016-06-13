@@ -40,6 +40,9 @@ type Email struct {
 	Email string
 	ZIP   string
 	State string
+	Senator1Id string
+	Senator2Id string
+	RepId string
 }
 
 var count int64
@@ -124,6 +127,17 @@ func addEmail(writer http.ResponseWriter, req *http.Request, dbMap *gorp.DbMap) 
 			reps := sunlight_api.GetReps(submission.ZIP)
 			if len(reps) > 0 {
 				email.State = reps[0].State
+				for _, rep :=range reps {
+					if rep.Chamber == "senate" {
+						if email.Senator1Id == "" {
+							email.Senator1Id = rep.BioGuideId
+						} else {
+							email.Senator2Id = rep.BioGuideId
+						}
+					} else {
+						email.RepId = rep.BioGuideId
+					}
+				}
 			}
 			fmt.Println("Adding user", email)
 			dbMap.Insert(&email)
