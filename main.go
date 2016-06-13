@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -19,7 +20,6 @@ import (
 	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/golang.org/x/net/html"
 	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/golang.org/x/net/html/atom"
 	"github.com/sdcoffey/gunviolencecounter/sunlight_api"
-	"os"
 )
 
 const base_url = "http://www.gunviolencearchive.org/mass-shooting"
@@ -178,8 +178,6 @@ func refreshData(dbMap *gorp.DbMap) {
 				fmt.Println("Adding incident", incident)
 				if err := dbMap.Insert(&incident); err != nil {
 					fmt.Println("ERROR - adding incident", incident, err.Error())
-				} else {
-					// Send emails
 				}
 			} else if existingIncident.Injured != incident.Injured || existingIncident.Killed != incident.Killed {
 				fmt.Println("Updating incident", incident.Id)
