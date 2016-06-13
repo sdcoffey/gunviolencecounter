@@ -3,3 +3,4 @@ main
 *.db
 *.iml
 .idea/*
+.creds
