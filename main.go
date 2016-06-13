@@ -20,27 +20,11 @@ import (
 	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/golang.org/x/net/html"
 	"github.com/sdcoffey/gunviolencecounter/Godeps/_workspace/src/golang.org/x/net/html/atom"
 	"github.com/sdcoffey/gunviolencecounter/sunlight_api"
+	"github.com/sdcoffey/gunviolencecounter/email"
+	"github.com/sdcoffey/gunviolencecounter/scrape"
 )
 
 const base_url = "http://www.gunviolencearchive.org/mass-shooting"
-
-type Incident struct {
-	Id      string
-	Date    time.Time
-	City    string
-	State   string
-	Address string
-	Killed  int
-	Injured int
-	Source  string
-}
-
-type Email struct {
-	Name  string
-	Email string
-	ZIP   string
-	State string
-}
 
 var count int64
 
@@ -102,7 +86,7 @@ func listEmails(writer http.ResponseWriter, req *http.Request, dbmap *gorp.DbMap
 		return
 	}
 
-	var emails []Email
+	var emails []track.Email
 	dbmap.Select(&emails, "select * from Email")
 	encoder := json.NewEncoder(writer)
 	writer.Header().Add("Content-Type", "application/json")
@@ -113,13 +97,13 @@ func addEmail(writer http.ResponseWriter, req *http.Request, dbMap *gorp.DbMap) 
 	body, _ := httputil.DumpRequest(req, true)
 	fmt.Println("/email", string(body))
 
-	var submission Email
+	var submission track.Email
 	defer req.Body.Close()
 	decoder := json.NewDecoder(req.Body)
 	if err := decoder.Decode(&submission); err != nil {
 		writer.WriteHeader(400)
 	} else if strings.Contains(submission.Email, "@") && strings.Contains(submission.Email, ".") && submission.ZIP != "" {
-		email := Email{Name: submission.Name, Email: submission.Email, ZIP: submission.ZIP}
+		email := track.Email{Name: submission.Name, Email: submission.Email, ZIP: submission.ZIP}
 		if key, _ := dbMap.SelectStr("select Email from Email where Email = $1 AND ZIP = $2", email.Email, email.ZIP); key == "" {
 			reps := sunlight_api.GetReps(submission.ZIP)
 			if len(reps) > 0 {
@@ -150,8 +134,8 @@ func initDb() *gorp.DbMap {
 	} else {
 		fmt.Println("Connected to Postgres")
 		dbMap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
-		dbMap.AddTable(Incident{}).SetKeys(false, "Id")
-		dbMap.AddTable(Email{}).SetKeys(false, "Email")
+		dbMap.AddTable(track.Incident{}).SetKeys(false, "Id")
+		dbMap.AddTable(track.Email{}).SetKeys(false, "Email")
 		dbMap.AddTable(sunlight_api.Rep{}).SetKeys(false, "BioGuideId")
 		dbMap.CreateTablesIfNotExists()
 		return dbMap
@@ -168,7 +152,7 @@ func refreshLoop(d time.Duration, updateFunc func()) {
 func refreshData(dbMap *gorp.DbMap) {
 	var numPages int = 1
 	for i := 0; i <= numPages; i++ {
-		var incidents []Incident
+		var incidents []track.Incident
 		incidents, numPages = getData(i)
 
 		for _, incident := range incidents {
@@ -178,6 +162,8 @@ func refreshData(dbMap *gorp.DbMap) {
 				fmt.Println("Adding incident", incident)
 				if err := dbMap.Insert(&incident); err != nil {
 					fmt.Println("ERROR - adding incident", incident, err.Error())
+				} else {
+					email.SendMailForIncident(i, db)
 				}
 			} else if existingIncident.Injured != incident.Injured || existingIncident.Killed != incident.Killed {
 				fmt.Println("Updating incident", incident.Id)
@@ -187,27 +173,26 @@ func refreshData(dbMap *gorp.DbMap) {
 	}
 }
 
-func getIncident(id string, dbMap *gorp.DbMap) Incident {
-	var incident Incident
-	dbMap.SelectOne(&incident, "select * from Incident where id = $1", id)
-	return incident
+func getIncident(id string, dbMap *gorp.DbMap) (i track.Incident) {
+	dbMap.SelectOne(&i, "select * from Incident where id = $1", id)
+	return
 }
 
-func getData(page int) ([]Incident, int) {
+func getData(page int) ([]track.Incident, int) {
 	if rootNode, err := fetchPage(page); err != nil {
-		return make([]Incident, 0), 0
+		return make([]track.Incident, 0), 0
 	} else {
 		tBody, _ := scrape.Find(rootNode, scrape.ByTag(atom.Tbody))
 		if tBody == nil {
-			return make([]Incident, 0), 0
+			return make([]track.Incident, 0), 0
 		}
 
 		rows := scrape.FindAll(tBody, scrape.ByTag(atom.Tr))
 
-		incidents := make([]Incident, len(rows))
+		incidents := make([]track.Incident, len(rows))
 		for i, row := range rows {
 			cols := scrape.FindAll(row, scrape.ByTag(atom.Td))
-			incident := Incident{}
+			incident := track.Incident{}
 			for j, col := range cols {
 				switch j {
 				case 0:

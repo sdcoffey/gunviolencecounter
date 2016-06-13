@@ -7,6 +7,7 @@ services:
       - "3001"
     links:
       - gv_postgres:db
+      - gv_mailserver:mail
     environment:
       EMAIL_PW: "${EMAIL_PW}"
       GV_PG_PASS: "${GV_PG_PASS}"
@@ -27,4 +28,17 @@ services:
     environment:
       POSTGRES_PASSWORD: "${GV_PG_PASS}"
       POSTGRES_USER: docker
+  gv_mailserver:
+    container_name: gv_mailserver
+    image: tvial/docker-mailserver:latest
+    hostname: mail
+    domainname: stopgunviolence.today
+    ports:
+      - "25:25"
+      - "143:143"
+      - "587:587"
+      - "993:993"
+    volumes:
+      - maildata:/var/mail
+      - ./config/:/tmp/docker-mailserver/
 

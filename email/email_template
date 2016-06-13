@@ -1,0 +1,16 @@
+Dear {{Rep.Title}} {{Rep.LastName}},
+
+Since January 1st, 2016, there have been {{VictimCount}} victims of mass shootings in the United States.
+
+Today, {{Incident.InjuredCount}} people were injured, and {{Incident.KilledCount}} were killed in shooting in {{Incident.City}}, {{Incident.State}}.
+
+Gun violence is quickly becoming one of the worst public health crises of the 21st century, and I'm writing to plead you do something about it.
+
+Lax gun laws allow anyone to purchase a gun with little or no oversight, when 90% of Americans support common sense gun laws such as background checks. Please take action to end this rampant, senseless violence.
+
+Don't betray the trust I've put in you by giving you my vote. Take action now to protect your citizens from the most deadly epidemic of the 21st century.
+
+Thank you,
+{{ for name := range Senders}}
+    {{name}}
+{{end}}
